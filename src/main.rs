@@ -1,13 +1,13 @@
 //! gray-shadcn-lint — agent-verifiable Tailwind/shadcn rules for gray.
 //!
-//! Behavioral port of shadcn-ui/ui's agent-facing lint contract (MIT) — not
-//! a code copy. The `shadcn_lint` tool prefers the upstream CLI
-//! (`npx @shadcn/ui lint`) when the project declares shadcn deps, and falls
-//! back to a built-in regex pass over *.tsx/*.css: arbitrary values
-//! (`w-[375px]`), hardcoded hex, hardcoded `dark:` overrides, and duplicate
-//! class tokens. `tool/after` re-lints just-written .tsx/.css files in
-//! shadcn/tailwind projects and appends findings (cap 15). Fail open:
-//! a broken pass never eats a tool result. `/shadcn on|off|status`.
+//! Implements the agent-facing lint contract for shadcn/Tailwind projects.
+//! The `shadcn_lint` tool prefers the official `npx @shadcn/ui lint` command
+//! when the project declares shadcn deps, and falls back to a built-in regex
+//! pass over *.tsx/*.css: arbitrary values (`w-[375px]`), hardcoded hex,
+//! hardcoded `dark:` overrides, and duplicate class tokens. `tool/after`
+//! re-lints just-written .tsx/.css files in shadcn/tailwind projects and
+//! appends findings (cap 15). Fail open: a broken pass never eats a tool
+//! result. `/shadcn on|off|status`.
 
 use std::io::{BufRead, Write};
 use std::path::{Path, PathBuf};
@@ -30,7 +30,7 @@ fn manifest() -> Value {
             "description": "Lint .tsx/.css files for shadcn/Tailwind rule violations: \
                 arbitrary numeric values (w-[375px]) that should be design tokens, hardcoded \
                 hex colors that should be CSS variables, hardcoded dark: palette overrides \
-                that should be semantic tokens, and duplicate class tokens. Uses the upstream \
+                that should be semantic tokens, and duplicate class tokens. Uses the official \
                 `npx @shadcn/ui lint` when the project declares shadcn deps; otherwise runs a \
                 built-in rule pass. `path` may be a file or directory (default: cwd).",
             "parameters": {
@@ -232,7 +232,7 @@ fn pkg_has(path: &Path, needles: &[&str]) -> bool {
         .unwrap_or(false)
 }
 
-/// Project declares shadcn → the upstream CLI presumably applies.
+/// Project declares shadcn → the official CLI presumably applies.
 fn has_shadcn_deps(path: &Path) -> bool {
     pkg_has(path, &["shadcn", "@shadcn"])
         || find_up(path, "components.json").is_some()
@@ -243,9 +243,9 @@ fn has_ui_deps(path: &Path) -> bool {
     has_shadcn_deps(path) || pkg_has(path, &["tailwindcss", "@tailwindcss"])
 }
 
-// --- upstream CLI -----------------------------------------------------------
+// --- official CLI -----------------------------------------------------------
 
-fn upstream_lint(path: &Path) -> Result<String, String> {
+fn official_lint(path: &Path) -> Result<String, String> {
     let out = std::process::Command::new("timeout")
         .args(["45", "npx", "--yes", "@shadcn/ui", "lint"])
         .arg(path)
@@ -278,12 +278,12 @@ fn call_tool(name: &str, args: &Value) -> Result<String, String> {
                 return Err(format!("no such path: {}", path.display()));
             }
             if has_shadcn_deps(&path) {
-                match upstream_lint(&path) {
+                match official_lint(&path) {
                     Ok(text) => return Ok(text),
                     Err(e) => {
                         let mut findings = builtin_pass(&path);
                         findings.truncate(TOOL_FINDING_CAP);
-                        let mut s = format!("(upstream lint unavailable: {e}; built-in pass)\n");
+                        let mut s = format!("(official lint unavailable: {e}; built-in pass)\n");
                         let body = if findings.is_empty() {
                             "no findings".to_string()
                         } else {

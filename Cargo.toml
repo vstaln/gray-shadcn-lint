@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 rust-version = "1.91"
 license = "MIT"
-description = "Agent-verifiable Tailwind/shadcn lint rules: shadcn_lint tool + tool/after findings on .tsx/.css writes"
+description = "Lint shadcn/Tailwind files on demand and after writes"
 
 [[bin]]
 name = "gray-shadcn-lint"
