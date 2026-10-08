@@ -1,0 +1,17 @@
+[package]
+name = "gray-shadcn-lint"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.91"
+license = "MIT"
+description = "Agent-verifiable Tailwind/shadcn lint rules: shadcn_lint tool + tool/after findings on .tsx/.css writes"
+
+[[bin]]
+name = "gray-shadcn-lint"
+path = "src/main.rs"
+
+[dependencies]
+serde_json = "1"
+
+[profile.release]
+strip = true
