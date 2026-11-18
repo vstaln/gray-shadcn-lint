@@ -41,6 +41,7 @@ fn manifest() -> Value {
             }
         }],
         "commands": ["/shadcn"],
+        "command_descriptions": {"/shadcn": "toggle shadcn and Tailwind lint"},
         "hooks": ["tool/after"],
     })
 }
